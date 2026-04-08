@@ -3,7 +3,7 @@ name: Auto Generate LMEI Outputs
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 * * * *"
+    - cron: "0 * * * *"   # runs every hour
 
 permissions:
   contents: write
@@ -28,17 +28,23 @@ jobs:
           pip install pandas numpy matplotlib scipy scikit-learn
 
       - name: Run pipeline
-        run: python scripts/generate_output.py
+        run: |
+          python scripts/generate_output.py
 
-      - name: Commit changes
+      - name: Configure Git
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add -A
-          git commit -m "Auto update LMEI outputs" || echo "No changes"
 
-      - name: Sync and push
+      - name: Commit changes
         run: |
-          git fetch origin main
-          git rebase origin/main || true
-          git push --force-with-lease origin HEAD:main
+          git add -A
+          git commit -m "Auto update LMEI outputs" || echo "No changes to commit"
+
+      - name: Pull latest changes (rebase)
+        run: |
+          git pull origin main --rebase || echo "Nothing to rebase"
+
+      - name: Push changes safely
+        run: |
+          git push origin HEAD:main || git push --force-with-lease origin HEAD:main
