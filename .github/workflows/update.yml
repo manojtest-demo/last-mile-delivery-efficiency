@@ -1,9 +1,12 @@
 name: Auto Update Artifacts
 
 on:
-  workflow_dispatch:   # manual run button
+  workflow_dispatch:
   schedule:
-    - cron: "0 * * * *"   # runs every hour (change if needed)
+    - cron: "0 * * * *"
+
+permissions:
+  contents: write   # ✅ THIS FIXES YOUR ERROR
 
 jobs:
   run-pipeline:
@@ -18,11 +21,7 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install dependencies (if any)
-        run: |
-          pip install -r requirements.txt || echo "No requirements"
-
-      - name: Run your script
+      - name: Run script
         run: python scripts/generate_output.py
 
       - name: Commit changes
@@ -30,7 +29,7 @@ jobs:
           git config user.name "github-actions"
           git config user.email "actions@github.com"
           git add -A
-          git commit -m "Auto अपडेट artifacts" || echo "No changes"
+          git commit -m "Auto update artifacts" || echo "No changes"
 
       - name: Push changes
         run: git push
