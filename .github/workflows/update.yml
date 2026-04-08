@@ -1,4 +1,4 @@
-name: Auto Update Artifacts
+name: Auto Generate LMEI Outputs
 
 on:
   workflow_dispatch:
@@ -16,14 +16,18 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # ✅ IMPORTANT FIX (full history)
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      - name: Run script
+      - name: Install dependencies
+        run: |
+          pip install pandas numpy matplotlib scipy scikit-learn
+
+      - name: Run pipeline
         run: python scripts/generate_output.py
 
       - name: Commit changes
@@ -31,13 +35,10 @@ jobs:
           git config user.name "github-actions"
           git config user.email "actions@github.com"
           git add -A
-          git commit -m "Auto update artifacts" || echo "No changes"
+          git commit -m "Auto update LMEI outputs" || echo "No changes"
 
-      # ✅ Proper sync with remote
-      - name: Sync with remote
+      - name: Sync and push
         run: |
           git fetch origin main
-          git rebase origin/main || git rebase --abort
-
-      - name: Push changes
-        run: git push origin HEAD:main
+          git rebase origin/main || true
+          git push --force-with-lease origin HEAD:main
