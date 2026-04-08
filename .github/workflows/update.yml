@@ -27,24 +27,30 @@ jobs:
         run: |
           pip install pandas numpy matplotlib scipy scikit-learn
 
-      - name: Run pipeline
-        run: |
-          python scripts/generate_output.py
-
+      # 🔥 STEP 1: Configure git
       - name: Configure Git
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
 
+      # 🔥 STEP 2: Sync with latest remote BEFORE running pipeline
+      - name: Sync with remote
+        run: |
+          git fetch origin main
+          git rebase origin/main || true
+
+      # 🔥 STEP 3: Run your pipeline
+      - name: Run pipeline
+        run: |
+          python scripts/generate_output.py
+
+      # 🔥 STEP 4: Commit outputs
       - name: Commit changes
         run: |
           git add -A
           git commit -m "Auto update LMEI outputs" || echo "No changes to commit"
 
-      - name: Pull latest changes (rebase)
-        run: |
-          git pull origin main --rebase || echo "Nothing to rebase"
-
-      - name: Push changes safely
+      # 🔥 STEP 5: Push safely
+      - name: Push changes
         run: |
           git push origin HEAD:main || git push --force-with-lease origin HEAD:main
